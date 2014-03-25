@@ -1,11 +1,11 @@
-# object-extend
+# object-inherit
 
 A small javascript inheritance framework.
 
 ## usage
 
 ```javascript
-require('object-extend');
+require('object-inherit');
 
 var BaseModel = Object.extend({
     
@@ -37,21 +37,21 @@ var Article = BaseModel.extend({
 });
 
 var article = new Article({
-    title: 'object-extend'
+    title: 'object-inherit'
 });
 
-// prints "Article: object-extend"
+// prints "Article: object-inherit"
 console.log(article.toString());
 ```
 
 ## using nodejs
 
 ```text
-npm install object-extend --save
+npm install object-inherit --save
 ```
 
 ## using bower
 
 ```text
-bower install object-extend --save
+bower install object-inherit --save
 ```

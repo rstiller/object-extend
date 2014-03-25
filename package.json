@@ -1,6 +1,6 @@
 {
-  "name": "object-extend",
-  "version": "0.1.0",
+  "name": "object-inherit",
+  "version": "0.2.0",
   "description": "A small javascript inheritance framework.",
   "main": "index.js",
   "scripts": {
@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/rstiller/object-extend.git"
+    "url": "git://github.com/rstiller/object-inherit.git"
   },
   "author": "rstiller <rstiller@users.noreply.github.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/rstiller/object-extend/issues"
+    "url": "https://github.com/rstiller/object-inherit/issues"
   },
-  "homepage": "https://github.com/rstiller/object-extend",
+  "homepage": "https://github.com/rstiller/object-inherit",
   "devDependencies": {
     "gulp": "~3.5.2",
     "gulp-uglify": "^0.2.1"
