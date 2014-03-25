@@ -1,0 +1,19 @@
+{
+  "name": "object-extend",
+  "version": "0.1.0",
+  "description": "object-extend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/rstiller/object-extend.git"
+  },
+  "author": "rstiller <rstiller@users.noreply.github.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rstiller/object-extend/issues"
+  },
+  "homepage": "https://github.com/rstiller/object-extend"
+}
