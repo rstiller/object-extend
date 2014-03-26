@@ -118,6 +118,7 @@
             
             for(var prop in attributes) {
                 defineProperty(slf, prop, attributes[prop]);
+                slf[prop] = attributes[prop];
             }
             
             if(ctors.length > 0) {
