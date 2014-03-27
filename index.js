@@ -110,9 +110,13 @@
             };
             slf.$super = slf.$super.bind(slf);
             
-            for(var prop in objectProperties) {
-                if(typeof objectProperties[prop] !== 'function') {
-                    defineProperty(slf, prop, objectProperties[prop]);
+            for(var prop in Class.$defaults) {
+                defineProperty(slf, prop, Class.$defaults[prop]);
+            }
+            
+            for(var prop in slf) {
+                if(typeof slf[prop] === 'function') {
+                    slf[prop] = slf[prop].bind(slf);
                 }
             }
             
@@ -153,9 +157,16 @@
             }
         };
         
+        Object.defineProperty(Class, '$defaults', { value: {}, enumerable: false, writable: false });
+        for(var prop in Superclass.$defaults) {
+            Class.$defaults[prop] = Superclass.$defaults[prop];
+        }
+        
         for(var prop in objectProperties) {
             if(typeof objectProperties[prop] === 'function') {
                 Class.prototype[prop] = objectProperties[prop];
+            } else {
+                Class.$defaults[prop] = objectProperties[prop];
             }
         }
         
