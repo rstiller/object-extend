@@ -6,6 +6,8 @@ A small javascript inheritance framework.
 
 ## usage
 
+#### basic inheritance
+
 ```javascript
 require('object-inherit');
 
@@ -49,6 +51,8 @@ var article = new Article({
 console.log(article.toString());
 ```
 
+#### default values
+
 ```javascript
 require('object-inherit');
 
@@ -81,6 +85,97 @@ console.log(a.x, a.y);
 
 // output: 5 2 6
 console.log(b.x, b.y, b.z);
+```
+
+#### super methods
+
+```javascript
+require('object-inherit');
+
+// define a simple toString method
+var A = Object.extend({
+    
+    toString: function() {
+        return 'Class A';
+    },
+    
+    toSource: function() {
+        return 'Source A';
+    }
+    
+});
+
+var B = A.extend({
+    
+    // overrides the toString method; notice the function name 'toStr' - its needed as anchor
+    toString: function toStr() {
+        return 'Class B: ' + this.$super(toStr).toString();
+    }
+    
+    
+});
+
+var C = B.extend({
+    
+    // overrides the toSource method from class A
+    toSource: function toSrc() {
+        return 'Source C: ' + this.$super(toSrc).toSource();
+    }
+    
+    
+});
+
+var b = new B();
+var c = new C();
+
+// output: Class B: Class A
+console.log(b.toString());
+
+// output: Source C: Source A
+console.log(c.toSource());
+```
+
+#### static methods and class reference
+
+```javascript
+require('object-inherit');
+
+// define object method first, class methods second
+var A = Object.extend({}, {
+    
+    // a class property
+    TYPE: 'A',
+    
+    toString: function() {
+        var Class = this;
+        return Class.TYPE;
+    }
+    
+});
+
+var B = A.extend({
+    
+    toString: function() {
+        var Class = this.$class;
+        return 'object-instance for Class: ' + Class.TYPE;
+    }
+    
+}, {
+    
+    TYPE: 'B'
+    
+});
+
+// output: A
+console.log(A.toString());
+
+// output: B
+console.log(B.toString());
+
+var b = new B();
+
+// output: object-instance for Class: B
+console.log(b.toString());
 ```
 
 ## using nodejs
