@@ -178,6 +178,45 @@ var b = new B();
 console.log(b.toString());
 ```
 
+#### listen to property changes
+
+```javascript
+require('object-inherit');
+
+var A = Object.extend({
+    
+    x: 0,
+    y: 1
+    
+});
+
+var a = new A();
+
+// listen to multiple properties
+var handlerRegistration = a.$on(['x', 'y'], function(newValue, oldValue, model, property) {
+    console.log('changed property', property, 'in', model, 'from', oldValue, 'to', newValue);
+});
+
+// output: changed property x in [object Object] from 0 to 2
+a.x = 2;
+
+// output: changed property y in [object Object] from 1 to 3
+a.y = 3;
+
+// disable the listener
+handlerRegistration.remove();
+
+// no output here
+a.x = 4;
+
+handlerRegistration = a.$on('x', function(value) {
+    console.log('x has changed to', value);
+});
+
+// output: x has changed to 5
+a.x = 5;
+```
+
 ## using nodejs
 
 ```text
