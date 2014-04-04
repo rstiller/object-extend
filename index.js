@@ -82,13 +82,16 @@
                 var anchor = {};
                 for(var prop in superTmp) {
                     if(typeof superTmp[prop] === 'function') {
-                        anchor[prop] = (function(func) {
+                        anchor[prop] = (function(func, name) {
                             
                             return function() {
+                                if(!func) {
+                                    throw new Error('Superclass has no method ' + name);
+                                }
                                 func.apply(slf, arguments);
                             };
                             
-                        })(superTmp.$super[prop]);
+                        })(superTmp.$super[prop], prop);
                     }
                 }
                 
