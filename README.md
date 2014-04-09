@@ -193,7 +193,7 @@ var A = Object.extend({
 var a = new A();
 
 // listen to multiple properties
-var handlerRegistration = a.$on(['x', 'y'], function(newValue, oldValue, model, property) {
+var handlerRegistration = a.$on(['x', 'y'], function(newValue, oldValue, model, property, handlerRegistration) {
     console.log('changed property', property, 'in', model, 'from', oldValue, 'to', newValue);
 });
 

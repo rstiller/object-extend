@@ -65,3 +65,25 @@ a.y = 2000;
 
 assert.equal(200, newValueInHandler);
 assert.equal(20, oldValueInHandler);
+
+newValueInHandler = -1;
+oldValueInHandler = -1;
+
+a.$on('z', function(newValue, oldValue, model, property, registration) {
+    newValueInHandler = newValue;
+    oldValueInHandler = oldValue;
+    registration.remove();
+});
+
+assert.equal(-1, newValueInHandler);
+assert.equal(-1, oldValueInHandler);
+
+a.z = 30;
+
+assert.equal(30, newValueInHandler);
+assert.equal(3, oldValueInHandler);
+
+a.z = 300;
+
+assert.equal(30, newValueInHandler);
+assert.equal(3, oldValueInHandler);

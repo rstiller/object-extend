@@ -1,7 +1,7 @@
 {
   "name": "object-inherit",
   "description": "A small javascript inheritance framework.",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "homepage": "https://github.com/rstiller/object-inherit",
   "authors": [
     "rstiller <rstiller@users.noreply.github.com>"

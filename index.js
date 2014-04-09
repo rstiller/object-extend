@@ -10,10 +10,11 @@
     /**
      * A HandlerRegistration is a an object which is used to de-register a listener.
      */
-    function HandlerRegistration(listeners, id) {
+    function HandlerRegistration(listeners, handlers, id) {
         
         this.remove = function() {
             delete listeners[id];
+            delete handlers[id];
         };
         
     }
@@ -50,6 +51,8 @@
             var descriptor = Object.getOwnPropertyDescriptor(model, property);
             // local list of listeners
             var listeners = {};
+            // local list of HandlerRegistration objects
+            var handlers = {};
             
             // only define the property if it isn't defined yet with a descriptor
             if(!descriptor) {
@@ -73,7 +76,7 @@
                                 _var = value;
                                 
                                 for(var id in listeners) {
-                                    listeners[id](value, oldValue, model, prop);
+                                    listeners[id](value, oldValue, model, prop, handlers[id]);
                                 }
                             }
                         }
@@ -87,6 +90,8 @@
                     desc.get.counter = 0;
                     // a reference to the listeners
                     desc.get.listeners = listeners;
+                    // a reference to the handlers
+                    desc.get.handlers = handlers;
                     
                     return desc;
                     
@@ -221,7 +226,12 @@
                 var id = descriptor.get.counter++;
                 descriptor.get.listeners[id] = handler;
                 
-                return new HandlerRegistration(descriptor.get.listeners, id);
+                var registration = new HandlerRegistration(descriptor.get.listeners, descriptor.get.handlers, id);
+                
+                // set the handler registration for the callback
+                descriptor.get.handlers[id] = registration;
+                
+                return registration;
             };
             
             // if there are many properties to watch ...
