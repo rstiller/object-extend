@@ -217,6 +217,78 @@ handlerRegistration = a.$on('x', function(value) {
 a.x = 5;
 ```
 
+```javascript
+require('object-inherit');
+
+var A = Object.extend({
+    
+    x: 0,
+    y: 1
+    
+});
+
+var a = new A();
+
+// listen to any changes
+var handlerRegistration = a.$on('$*', function(newValue, oldValue, model, property, handlerRegistration) {
+    console.log('changed property', property, 'in', model, 'from', oldValue, 'to', newValue);
+});
+
+// output: changed property x in [object Object] from 0 to 2
+a.x = 2;
+
+// output: changed property y in [object Object] from 1 to 3
+a.y = 3;
+
+// disable the listener
+handlerRegistration.remove();
+
+// no output here
+a.x = 4;
+```
+
+If you want to disable the listener for each property and only want to listen to changes of many properties at once
+you can use the `$set` property.
+
+```javascript
+handler = function(newValues, oldValues, model, handlerRegistration) {}
+
+$on('$set', handler)
+```
+
+```javascript
+require('object-inherit');
+
+var A = Object.extend({
+    
+    x: 0,
+    y: 1
+    
+});
+
+var a = new A();
+
+// listen to changes of many properties
+var $setRegistration = a.$on('$set', function(newValues, oldValues, model, handlerRegistration) {
+    console.log('many properties changed:', newValues);
+});
+
+// no output here
+a.x = 2;
+
+var regularRegistration = a.$on('x', function(newValue, oldValue, model, property, handlerRegistration) {
+    console.log('changed property', property, 'in', model, 'from', oldValue, 'to', newValue);
+});
+
+// output: changed property x in [object Object] from 2 to 3
+a.x = 3;
+
+// output: many properties changed: { x: 4 }
+a.$set({
+    x: 4
+});
+```
+
 ## using nodejs
 
 ```text

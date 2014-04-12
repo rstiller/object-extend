@@ -8,6 +8,17 @@
     'use strict';
 
     /**
+     * A listener container for special properties.
+     */
+    function ListenerContainer() {
+        
+        this.listeners = {};
+        this.counter   = 0;
+        this.handlers  = {};
+        
+    }
+
+    /**
      * A HandlerRegistration is a an object which is used to de-register a listener.
      */
     function HandlerRegistration(listeners, handlers, id) {
@@ -68,15 +79,24 @@
                         get: function() {
                             return _var;
                         },
-                        set: function(value) {
+                        // the $set method disables the listener invocation for each single property
+                        set: function(value, disable) {
                             var oldValue = _var;
+                            var slf = this;
                             
                             // only fire events if the value changed
                             if(value !== _var) {
                                 _var = value;
                                 
-                                for(var id in listeners) {
-                                    listeners[id](value, oldValue, model, prop, handlers[id]);
+                                if(arguments.length === 1 || disable !== false) {
+                                    for(var id in listeners) {
+                                        listeners[id](value, oldValue, model, prop, handlers[id]);
+                                    }
+                                    
+                                    // call the $* listeners
+                                    for(var id in slf.$$asterisk.listeners) {
+                                        slf.$$asterisk.listeners[id](value, oldValue, model, prop, slf.$$asterisk.handlers[id]);
+                                    }
                                 }
                             }
                         }
@@ -110,6 +130,10 @@
             
             // a reference to the Class for each instance
             slf.$class = Class;
+            // define the $$set property for $set listeners
+            Object.defineProperty(slf, '$$set', { value: new ListenerContainer(), enumerable: false, writable: false });
+            // define the $$asterisk property for $* listeners
+            Object.defineProperty(slf, '$$asterisk', { value: new ListenerContainer(), enumerable: false, writable: false });
             
             // iterate through all superclasses
             while((protoTmp = protoTmp.__proto__) != null) {
@@ -246,7 +270,50 @@
                 // all the single HandlerRegistration objects created before
                 return new HandlerRegistrationCollection(registrations)
             } else {
-                return addListener(properties);
+                if(properties === '$*') {
+                    var id = slf.$$asterisk.counter++;
+                    var registration = new HandlerRegistration(slf.$$asterisk.listeners, slf.$$asterisk.handlers, id);
+                    slf.$$asterisk.listeners[id] = handler;
+                    slf.$$asterisk.handlers[id]  = handler;
+                    
+                    return registration;
+                } else if(properties === '$set') {
+                    var id = slf.$$set.counter++;
+                    var registration = new HandlerRegistration(slf.$$set.listeners, slf.$$set.handlers, id);
+                    slf.$$set.listeners[id] = handler;
+                    slf.$$set.handlers[id]  = handler;
+                    
+                    return registration;
+                } else {
+                    return addListener(properties);
+                }
+                
+            }
+        };
+        // the $set method is used to set many properties at the same time without
+        // calling the respective listeners - instead the $set listener is invoked
+        Class.prototype.$set = function(values) {
+            // reference to this instance
+            var slf = this;
+            var oldValues = {};
+            
+            for(var prop in values) {
+                // set the old value
+                oldValues[prop] = slf[prop];
+                
+                // not every object property needs to have a descriptor!
+                var descriptor = Object.getOwnPropertyDescriptor(slf, prop);
+                
+                // may be someone defined a property without an setter method - bad idea
+                if(!!descriptor && !!descriptor.set) {
+                    // disable the listener invocation
+                    descriptor.set.apply(slf, [values[prop], false]);
+                }
+            }
+            
+            // invoke the $set listeners
+            for(var name in slf.$$set.listeners) {
+                slf.$$set.listeners[name](values, oldValues, slf, slf.$$set.handlers[name]);
             }
         };
         
