@@ -274,14 +274,14 @@
                     var id = slf.$$asterisk.counter++;
                     var registration = new HandlerRegistration(slf.$$asterisk.listeners, slf.$$asterisk.handlers, id);
                     slf.$$asterisk.listeners[id] = handler;
-                    slf.$$asterisk.handlers[id]  = handler;
+                    slf.$$asterisk.handlers[id]  = registration;
                     
                     return registration;
                 } else if(properties === '$set') {
                     var id = slf.$$set.counter++;
                     var registration = new HandlerRegistration(slf.$$set.listeners, slf.$$set.handlers, id);
                     slf.$$set.listeners[id] = handler;
-                    slf.$$set.handlers[id]  = handler;
+                    slf.$$set.handlers[id]  = registration;
                     
                     return registration;
                 } else {
