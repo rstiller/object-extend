@@ -3,6 +3,18 @@
  * 
  * This module registers the "extend" function for all functions (objects).
  * It works for nodejs and for browsers.
+ * 
+ * dependencies:
+ *     - Object.create: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
+ *     - Object.defineProperty: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
+ *     - Object.getOwnPropertyDescriptor: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptor
+ * 
+ * browser compatibility:
+ *     - Firefox 4
+ *     - Chrome 5
+ *     - Safari 5.1
+ *     - Opera 12
+ *     - Internet Explorer 9
  */
 (function() {
     'use strict';
@@ -132,6 +144,8 @@
             slf.$class = Class;
             // define the $$set property for $set listeners
             Object.defineProperty(slf, '$$set', { value: new ListenerContainer(), enumerable: false, writable: false });
+            // define the $$emit property for $emit listeners
+            Object.defineProperty(slf, '$$emit', { value: {}, enumerable: false, writable: false });
             // define the $$asterisk property for $* listeners
             Object.defineProperty(slf, '$$asterisk', { value: new ListenerContainer(), enumerable: false, writable: false });
             
@@ -270,6 +284,7 @@
                 // all the single HandlerRegistration objects created before
                 return new HandlerRegistrationCollection(registrations)
             } else {
+                // all properties
                 if(properties === '$*') {
                     var id = slf.$$asterisk.counter++;
                     var registration = new HandlerRegistration(slf.$$asterisk.listeners, slf.$$asterisk.handlers, id);
@@ -277,14 +292,33 @@
                     slf.$$asterisk.handlers[id]  = registration;
                     
                     return registration;
-                } else if(properties === '$set') {
+                }
+                // the mass-assignment method
+                else if(properties === '$set') {
                     var id = slf.$$set.counter++;
                     var registration = new HandlerRegistration(slf.$$set.listeners, slf.$$set.handlers, id);
                     slf.$$set.listeners[id] = handler;
                     slf.$$set.handlers[id]  = registration;
                     
                     return registration;
-                } else {
+                }
+                // for self-defined events
+                else if(properties[0] === '!') {
+                    var listeners = slf.$$emit[properties];
+                    
+                    if(!listeners) {
+                        slf.$$emit[properties] = listeners = new ListenerContainer();
+                    }
+                    
+                    var id = listeners.counter++;
+                    var registration = new HandlerRegistration(listeners.listeners, listeners.handlers, id);
+                    listeners.listeners[id] = handler;
+                    listeners.handlers[id]  = registration;
+                    
+                    return registration;
+                }
+                // for all other properties
+                else {
                     return addListener(properties);
                 }
                 
@@ -314,6 +348,23 @@
             // invoke the $set listeners
             for(var name in slf.$$set.listeners) {
                 slf.$$set.listeners[name](values, oldValues, slf, slf.$$set.handlers[name]);
+            }
+        };
+        
+        // the $emit function triggers a call to handlers of the
+        // specified event registered with the $on function
+        // 
+        // event - a custom event: { type: '...', payload: ... }
+        // handler function parameters - event, model, registration handler
+        Class.prototype.$emit = function(event) {
+            var slf = this;
+            
+            if(!!event && !!event.type && !!slf.$$emit[event.type]) {
+                var listeners = slf.$$emit[event.type];
+                // invoke the $emit listeners
+                for(var name in listeners.listeners) {
+                    listeners.listeners[name](event, slf, listeners.handlers[name]);
+                }
             }
         };
         

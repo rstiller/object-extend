@@ -5,3 +5,4 @@ require('./method-inheritance');
 require('./value-separation');
 require('./listener');
 require('./special-listener');
+require('./emit');

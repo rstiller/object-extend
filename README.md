@@ -4,6 +4,18 @@ A small javascript inheritance framework.
 
 [![Build Status](https://travis-ci.org/rstiller/object-inherit.svg?branch=master)](https://travis-ci.org/rstiller/object-inherit)
 
+**dependencies:**
+- Object.create: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
+- Object.defineProperty: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
+- Object.getOwnPropertyDescriptor: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptor
+
+**browser compatibility:**
+- Firefox 4
+- Chrome 5
+- Safari 5.1
+- Opera 12
+- Internet Explorer 9
+
 ## usage
 
 #### basic inheritance
@@ -287,6 +299,35 @@ a.x = 3;
 a.$set({
     x: 4
 });
+```
+
+#### listen to custom events
+
+```javascript
+require('object-inherit');
+
+var A = Object.extend({
+});
+
+var a = new A();
+
+// listen to an event
+// custom events need to start with an exclamation point ('!')
+// the event-object needs to have at least a type property
+var registration = a.$on('!MyCustomEvent', function(event, model, registration) {
+    console.log('event', event.type, 'caught in', model, 'with payload', event.payload);
+});
+
+var event = {
+    type: '!MyCustomEvent',
+    payload: 'Test Payload'
+};
+
+// console output: event !MyCustomEvent caught in [Object object] with payload Test Payload
+a.$emit(event);
+
+// de-register the listener
+registration.remove();
 ```
 
 ## using nodejs
