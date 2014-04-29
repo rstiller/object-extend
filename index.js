@@ -5,6 +5,7 @@
  * It works for nodejs and for browsers.
  * 
  * dependencies:
+ *     - window.setTimeout: https://developer.mozilla.org/en-US/docs/DOM/window.setTimeout
  *     - Object.create: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
  *     - Object.defineProperty: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
  *     - Object.getOwnPropertyDescriptor: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptor
@@ -252,9 +253,20 @@
         // assign the javascript constructor
         Class.prototype.constructor = Class;
         // define the change listener registration method
-        Class.prototype.$on = function(properties, handler) {
+        Class.prototype.$on = function(properties, delay, handler) {
             // reference to this instance
             var slf = this;
+            // the delay in which the messages are promoted to the listeners
+            var notificationDelay = delay;
+            // the actual handler callback
+            var handlerFunc = handler;
+            
+            // if no delay was specified
+            if(!handlerFunc) {
+                handlerFunc = delay;
+                notificationDelay = -1;
+            }
+            
             // adds the handler to the list of listeners and creates a new HandlerRegistration
             var addListener = function(property) {
                 defineProperty(slf, property, slf[property]);
@@ -262,7 +274,7 @@
                 // assuming that there is property descriptor defined from the defineProperty method
                 var descriptor = Object.getOwnPropertyDescriptor(slf, property);
                 var id = descriptor.get.counter++;
-                descriptor.get.listeners[id] = handler;
+                descriptor.get.listeners[id] = handlerFunc;
                 
                 var registration = new HandlerRegistration(descriptor.get.listeners, descriptor.get.handlers, id);
                 
@@ -288,7 +300,7 @@
                 if(properties === '$*') {
                     var id = slf.$$asterisk.counter++;
                     var registration = new HandlerRegistration(slf.$$asterisk.listeners, slf.$$asterisk.handlers, id);
-                    slf.$$asterisk.listeners[id] = handler;
+                    slf.$$asterisk.listeners[id] = handlerFunc;
                     slf.$$asterisk.handlers[id]  = registration;
                     
                     return registration;
@@ -297,7 +309,7 @@
                 else if(properties === '$set') {
                     var id = slf.$$set.counter++;
                     var registration = new HandlerRegistration(slf.$$set.listeners, slf.$$set.handlers, id);
-                    slf.$$set.listeners[id] = handler;
+                    slf.$$set.listeners[id] = handlerFunc;
                     slf.$$set.handlers[id]  = registration;
                     
                     return registration;
@@ -312,7 +324,7 @@
                     
                     var id = listeners.counter++;
                     var registration = new HandlerRegistration(listeners.listeners, listeners.handlers, id);
-                    listeners.listeners[id] = handler;
+                    listeners.listeners[id] = handlerFunc;
                     listeners.handlers[id]  = registration;
                     
                     return registration;
