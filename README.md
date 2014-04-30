@@ -5,6 +5,8 @@ A small javascript inheritance framework.
 [![Build Status](https://travis-ci.org/rstiller/object-inherit.svg?branch=master)](https://travis-ci.org/rstiller/object-inherit)
 
 **dependencies:**
+- Javascript 1.8.5
+- window.setTimeout: https://developer.mozilla.org/en-US/docs/DOM/window.setTimeout
 - Object.create: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
 - Object.defineProperty: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
 - Object.getOwnPropertyDescriptor: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptor
@@ -299,6 +301,35 @@ a.x = 3;
 a.$set({
     x: 4
 });
+```
+
+#### listen to property changes with delay
+
+```javascript
+require('object-inherit');
+
+var A = Object.extend({
+    
+    x: 0,
+    y: 1
+    
+});
+
+var a = new A();
+
+// listen to property changes with delay of 200 ms
+var handlerRegistration = a.$on(['x', 'y'], 200, function(callHistory) {
+    var last = callHistory[callHistory.length - 1];
+    console.log('latest call', last[3], 'in', last[2], 'from', last[1], 'to', last[0]);
+});
+
+// no output here
+for(var i = 0; i < 100; i++) {
+    a.x = i;
+}
+
+// 200 ms later:
+// output: changed property x in [object Object] from 98 to 99
 ```
 
 #### listen to custom events

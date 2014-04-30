@@ -5,6 +5,7 @@
  * It works for nodejs and for browsers.
  * 
  * dependencies:
+ *     - Javascript 1.8.5
  *     - window.setTimeout: https://developer.mozilla.org/en-US/docs/DOM/window.setTimeout
  *     - Object.create: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
  *     - Object.defineProperty: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
@@ -19,6 +20,54 @@
  */
 (function() {
     'use strict';
+
+    /**
+     * A callback-container holds a handler for an event.
+     */
+    function CallbackContainer(delay, handler) {
+        
+        var slf = this;
+        
+        slf.delay     = delay;
+        slf.handler   = handler;
+        slf.timeoutId = null;
+        slf.lastTime  = 0;
+        slf.buffer    = [];
+        
+        slf.call = function() {
+            var currentTime = new Date().getTime();
+            var callArguments = [];
+            
+            for(var i = 0; i < arguments.length; i++) {
+                callArguments.push(arguments[i]);
+            }
+            
+            if(slf.delay <= 0) {
+                slf.handler.apply(slf.handler, callArguments);
+            } else {
+                slf.buffer.push(callArguments);
+                
+                if(!!slf.timeoutId) {
+                    return;
+                }
+                
+                slf.timeoutId = setTimeout(function periodic() {
+                    var buffer = slf.buffer;
+                    slf.buffer = [];
+                    
+                    clearTimeout(slf.timeoutId);
+                    
+                    if(buffer.length == 0) {
+                        slf.timeoutId = null;
+                    } else {
+                        slf.handler(buffer);
+                        slf.timeoutId = setTimeout(periodic, slf.delay);
+                    }
+                }, slf.delay);
+            }
+        };
+        
+    }
 
     /**
      * A listener container for special properties.
@@ -103,12 +152,12 @@
                                 
                                 if(arguments.length === 1 || disable !== false) {
                                     for(var id in listeners) {
-                                        listeners[id](value, oldValue, model, prop, handlers[id]);
+                                        listeners[id].call(value, oldValue, model, prop, handlers[id]);
                                     }
                                     
                                     // call the $* listeners
                                     for(var id in slf.$$asterisk.listeners) {
-                                        slf.$$asterisk.listeners[id](value, oldValue, model, prop, slf.$$asterisk.handlers[id]);
+                                        slf.$$asterisk.listeners[id].call(value, oldValue, model, prop, slf.$$asterisk.handlers[id]);
                                     }
                                 }
                             }
@@ -267,6 +316,8 @@
                 notificationDelay = -1;
             }
             
+            var callback = new CallbackContainer(notificationDelay || 0, handlerFunc);
+            
             // adds the handler to the list of listeners and creates a new HandlerRegistration
             var addListener = function(property) {
                 defineProperty(slf, property, slf[property]);
@@ -274,7 +325,7 @@
                 // assuming that there is property descriptor defined from the defineProperty method
                 var descriptor = Object.getOwnPropertyDescriptor(slf, property);
                 var id = descriptor.get.counter++;
-                descriptor.get.listeners[id] = handlerFunc;
+                descriptor.get.listeners[id] = callback;
                 
                 var registration = new HandlerRegistration(descriptor.get.listeners, descriptor.get.handlers, id);
                 
@@ -300,7 +351,7 @@
                 if(properties === '$*') {
                     var id = slf.$$asterisk.counter++;
                     var registration = new HandlerRegistration(slf.$$asterisk.listeners, slf.$$asterisk.handlers, id);
-                    slf.$$asterisk.listeners[id] = handlerFunc;
+                    slf.$$asterisk.listeners[id] = callback;
                     slf.$$asterisk.handlers[id]  = registration;
                     
                     return registration;
@@ -309,7 +360,7 @@
                 else if(properties === '$set') {
                     var id = slf.$$set.counter++;
                     var registration = new HandlerRegistration(slf.$$set.listeners, slf.$$set.handlers, id);
-                    slf.$$set.listeners[id] = handlerFunc;
+                    slf.$$set.listeners[id] = callback;
                     slf.$$set.handlers[id]  = registration;
                     
                     return registration;
@@ -324,7 +375,7 @@
                     
                     var id = listeners.counter++;
                     var registration = new HandlerRegistration(listeners.listeners, listeners.handlers, id);
-                    listeners.listeners[id] = handlerFunc;
+                    listeners.listeners[id] = callback;
                     listeners.handlers[id]  = registration;
                     
                     return registration;
@@ -359,7 +410,7 @@
             
             // invoke the $set listeners
             for(var name in slf.$$set.listeners) {
-                slf.$$set.listeners[name](values, oldValues, slf, slf.$$set.handlers[name]);
+                slf.$$set.listeners[name].call(values, oldValues, slf, slf.$$set.handlers[name]);
             }
         };
         
@@ -375,7 +426,7 @@
                 var listeners = slf.$$emit[event.type];
                 // invoke the $emit listeners
                 for(var name in listeners.listeners) {
-                    listeners.listeners[name](event, slf, listeners.handlers[name]);
+                    listeners.listeners[name].call(event, slf, listeners.handlers[name]);
                 }
             }
         };
