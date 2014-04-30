@@ -28,39 +28,52 @@
         
         var slf = this;
         
+        // the delay for the particular handler
         slf.delay     = delay;
+        // the handler to call
         slf.handler   = handler;
+        // the latest id from setTimeout
         slf.timeoutId = null;
-        slf.lastTime  = 0;
+        // the buffer where the call arguments are stored to the next handler call
         slf.buffer    = [];
         
+        // called for every notification event
         slf.call = function() {
-            var currentTime = new Date().getTime();
             var callArguments = [];
             
+            // copy arguments
             for(var i = 0; i < arguments.length; i++) {
                 callArguments.push(arguments[i]);
             }
             
+            // no delay - no special function
             if(slf.delay <= 0) {
                 slf.handler.apply(slf.handler, callArguments);
             } else {
+                // store call arguments
                 slf.buffer.push(callArguments);
                 
+                // if there is a timeout running do nothing
                 if(!!slf.timeoutId) {
                     return;
                 }
                 
+                // if no timeout is running trigger one and empty the buffer
                 slf.timeoutId = setTimeout(function periodic() {
                     var buffer = slf.buffer;
                     slf.buffer = [];
                     
+                    // clear the timeout
                     clearTimeout(slf.timeoutId);
                     
                     if(buffer.length == 0) {
+                        // clear the timeout indicator
                         slf.timeoutId = null;
                     } else {
+                        // call the handler if there are calls wait to be processed
                         slf.handler(buffer);
+                        // and restart the timeout
+                        // if there are no arguments in the second run no new timeout will be started
                         slf.timeoutId = setTimeout(periodic, slf.delay);
                     }
                 }, slf.delay);
